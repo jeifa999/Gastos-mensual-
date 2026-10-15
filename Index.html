@@ -1,0 +1,1531 @@
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Presupuesto Quincenal y Dinero Libre</title>
+  <!-- Tailwind CSS 3.4.17 -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    .status-badge-green {
+      background-color: #dcfce7;
+      color: #15803d;
+      border: 1px solid #86efac;
+    }
+    .status-badge-yellow {
+      background-color: #fef9c3;
+      color: #a16207;
+      border: 1px solid #fde047;
+    }
+    .status-badge-red {
+      background-color: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fca5a5;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+
+  <!-- Header con Selector de Usuarios y Navegación de Mes -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Logo y Título -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-md flex-shrink-0">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-black text-slate-900 tracking-tight leading-tight">Presupuesto Quincenal</h1>
+          <p class="text-xs text-slate-500 font-medium">Gastos, semáforo, dinero libre y reportes de WhatsApp</p>
+        </div>
+      </div>
+
+      <!-- Control de Usuarios y Mes -->
+      <div class="flex items-center flex-wrap gap-2.5">
+        
+        <!-- Selector Multi-Usuario -->
+        <div class="flex items-center bg-slate-100/90 rounded-xl p-1 border border-slate-200 shadow-inner">
+          <div class="flex items-center gap-1.5 px-2">
+            <div id="user-avatar" class="w-6 h-6 rounded-full bg-emerald-600 text-white text-[11px] font-bold flex items-center justify-center uppercase shadow-xs">
+              U
+            </div>
+            <select id="user-select" class="bg-transparent text-xs font-bold text-slate-800 focus:outline-none cursor-pointer py-1 pr-1">
+              <!-- Opciones dinámicas de usuarios -->
+            </select>
+          </div>
+          <button id="btn-add-user" class="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-white rounded-lg transition-colors" title="Crear nuevo usuario">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+          </button>
+          <button id="btn-manage-users" class="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-white rounded-lg transition-colors" title="Administrar usuarios">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+          </button>
+        </div>
+
+        <!-- Selector de Mes -->
+        <div class="flex items-center bg-slate-100 rounded-xl p-1 border border-slate-200">
+          <button id="btn-prev-month" class="p-1.5 rounded-lg hover:bg-white text-slate-600 hover:text-slate-900 transition-colors" title="Mes anterior">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <span id="current-month-label" class="px-3 text-xs sm:text-sm font-bold text-slate-800 capitalize select-none min-w-[120px] text-center">Octubre 2026</span>
+          <button id="btn-next-month" class="p-1.5 rounded-lg hover:bg-white text-slate-600 hover:text-slate-900 transition-colors" title="Mes siguiente">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+          </button>
+        </div>
+
+        <button id="btn-reset-demo" class="hidden md:inline-flex items-center px-2.5 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+          Reiniciar Demo
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Contenedor Principal -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex-1 w-full space-y-6">
+
+    <!-- Resumen Consolidado del Mes y Semáforo de Referencia -->
+    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+        <div>
+          <span class="text-xs uppercase tracking-wider font-bold text-slate-400">Balance Mensual Consolidado</span>
+          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <span>Usuario: <strong id="banner-user-name" class="text-emerald-600 font-extrabold">Mi Perfil</strong></span>
+            <span class="text-slate-300">•</span>
+            <span id="banner-period-name" class="text-slate-600 font-medium">Octubre 2026</span>
+          </h2>
+        </div>
+        
+        <!-- Acciones del Banner: WhatsApp Mensual y Leyenda de Colores -->
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <button onclick="openWhatsAppModal('month')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-xs transition-all">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12.031 2C6.516 2 2.02 6.495 2.02 12.01c0 1.834.498 3.553 1.365 5.038L2.01 22.02l5.127-1.344a9.98 9.98 0 004.894 1.272h.004c5.515 0 10.012-4.496 10.012-10.012 0-2.673-1.04-5.184-2.932-7.076C17.222 3.037 14.71 2 12.031 2zm0 1.667c2.23 0 4.324.869 5.897 2.443 1.573 1.574 2.439 3.668 2.439 5.9 0 4.598-3.74 8.344-8.336 8.344a8.297 8.297 0 01-4.223-1.144l-.303-.18-3.045.798.813-2.969-.197-.315A8.307 8.307 0 013.687 12.01c0-4.6 3.743-8.343 8.344-8.343zm4.567 11.782c-.25-.125-1.48-.73-1.71-.813-.23-.083-.396-.125-.563.125-.166.25-.645.813-.791.979-.146.167-.292.188-.542.063-.25-.125-1.054-.389-2.008-1.24-.742-.662-1.243-1.479-1.39-1.729-.145-.25-.015-.386.11-.51.114-.114.25-.292.375-.438.125-.146.167-.25.25-.417.084-.167.042-.313-.02-.438-.063-.125-.563-1.354-.772-1.854-.203-.488-.41-.422-.563-.43-.146-.008-.312-.01-.479-.01-.167 0-.437.063-.666.313-.23.25-.875.854-.875 2.083 0 1.23 1 2.417 1.042 2.583.146.167 1.96 2.99 4.747 4.19.664.286 1.182.457 1.587.585.667.212 1.275.182 1.755.11.536-.08 1.48-.605 1.688-1.188.208-.584.208-1.084.146-1.188-.063-.104-.23-.167-.48-.292z"/>
+            </svg>
+            <span>WhatsApp Mes</span>
+          </button>
+          <span class="flex items-center gap-1 px-2.5 py-1 rounded-full status-badge-green font-medium">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Verde: Pagado
+          </span>
+          <span class="flex items-center gap-1 px-2.5 py-1 rounded-full status-badge-yellow font-medium">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span> Amarillo: Por completar
+          </span>
+          <span class="flex items-center gap-1 px-2.5 py-1 rounded-full status-badge-red font-medium">
+            <span class="w-2 h-2 rounded-full bg-rose-500"></span> Rojo: Sin realizar
+          </span>
+        </div>
+      </div>
+
+      <!-- Tarjetas de Métricas Mensuales (4 columnas) -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Total Ingresos -->
+        <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3.5">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800">¿Cuánto Gané? (Ingresos)</span>
+          <div id="metric-monthly-income" class="text-xl sm:text-2xl font-black text-emerald-700 mt-0.5">$0</div>
+          <span class="text-[10px] text-emerald-600 font-medium">Suma de 1Q + 2Q</span>
+        </div>
+
+        <!-- Total Gastos Planeados -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-600">¿Cuánto Gasté? (Gastos)</span>
+          <div id="metric-monthly-expenses" class="text-xl sm:text-2xl font-black text-slate-800 mt-0.5">$0</div>
+          <div class="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
+            <span class="text-emerald-600 font-bold" id="metric-paid-count">0 pagados</span> • <span class="text-rose-500 font-bold" id="metric-unpaid-count">0 pendientes</span>
+          </div>
+        </div>
+
+        <!-- Dinero Libre Proyectado -->
+        <div id="card-monthly-free" class="bg-blue-50/70 border border-blue-200 rounded-xl p-3.5">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-blue-900" id="label-monthly-free">¿Cuánto Me Quedó?</span>
+          <div id="metric-monthly-free" class="text-xl sm:text-2xl font-black text-blue-700 mt-0.5">$0</div>
+          <span class="text-[10px] text-blue-600 font-medium" id="desc-monthly-free">Ingreso menos todos los gastos</span>
+        </div>
+
+        <!-- Saldo Real Disponible al Momento -->
+        <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-3.5">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-amber-900">Saldo Disponible Hoy</span>
+          <div id="metric-current-cash" class="text-xl sm:text-2xl font-black text-amber-800 mt-0.5">$0</div>
+          <span class="text-[10px] text-amber-700 font-medium">Ingreso menos solo pagados (verde)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de Filtro de Estados -->
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-1 bg-slate-200/70 p-1 rounded-xl text-xs font-semibold">
+        <button data-filter="all" class="filter-tab px-3 py-1.5 rounded-lg bg-white text-slate-900 shadow-sm transition-all">Todos los gastos</button>
+        <button data-filter="green" class="filter-tab px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition-all flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>Pagados (Verde)
+        </button>
+        <button data-filter="yellow" class="filter-tab px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition-all flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span>Por completar (Amarillo)
+        </button>
+        <button data-filter="red" class="filter-tab px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition-all flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-rose-500"></span>Sin realizar (Rojo)
+        </button>
+      </div>
+
+      <div class="text-xs text-slate-500 font-medium">
+        💡 <em>Usa los botones ✏️ y 🗑️ en cada gasto para editar o eliminar al instante.</em>
+      </div>
+    </div>
+
+    <!-- Las Dos Quincenas (Grid de 2 Columnas) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- ================= 1RA QUINCENA ================= -->
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+        
+        <!-- Header 1Q -->
+        <div class="p-4 sm:p-5 border-b border-slate-100 bg-gradient-to-r from-emerald-50/80 via-emerald-50/40 to-white flex flex-wrap items-center justify-between gap-2.5">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm shadow-sm flex-shrink-0">
+              1Q
+            </div>
+            <div>
+              <h3 class="font-bold text-slate-900 text-base leading-tight">Primera Quincena</h3>
+              <p class="text-xs text-slate-500">Días 1 al 15 del mes</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <!-- Botón WhatsApp 1Q -->
+            <button onclick="openWhatsAppModal('q1')" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold transition-all border border-emerald-200" title="Enviar reporte de 1ra Quincena por WhatsApp">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12.031 2C6.516 2 2.02 6.495 2.02 12.01c0 1.834.498 3.553 1.365 5.038L2.01 22.02l5.127-1.344a9.98 9.98 0 004.894 1.272h.004c5.515 0 10.012-4.496 10.012-10.012 0-2.673-1.04-5.184-2.932-7.076C17.222 3.037 14.71 2 12.031 2zm0 1.667c2.23 0 4.324.869 5.897 2.443 1.573 1.574 2.439 3.668 2.439 5.9 0 4.598-3.74 8.344-8.336 8.344a8.297 8.297 0 01-4.223-1.144l-.303-.18-3.045.798.813-2.969-.197-.315A8.307 8.307 0 013.687 12.01c0-4.6 3.743-8.343 8.344-8.343zm4.567 11.782c-.25-.125-1.48-.73-1.71-.813-.23-.083-.396-.125-.563.125-.166.25-.645.813-.791.979-.146.167-.292.188-.542.063-.25-.125-1.054-.389-2.008-1.24-.742-.662-1.243-1.479-1.39-1.729-.145-.25-.015-.386.11-.51.114-.114.25-.292.375-.438.125-.146.167-.25.25-.417.084-.167.042-.313-.02-.438-.063-.125-.563-1.354-.772-1.854-.203-.488-.41-.422-.563-.43-.146-.008-.312-.01-.479-.01-.167 0-.437.063-.666.313-.23.25-.875.854-.875 2.083 0 1.23 1 2.417 1.042 2.583.146.167 1.96 2.99 4.747 4.19.664.286 1.182.457 1.587.585.667.212 1.275.182 1.755.11.536-.08 1.48-.605 1.688-1.188.208-.584.208-1.084.146-1.188-.063-.104-.23-.167-.48-.292z"/>
+              </svg>
+              <span>WhatsApp</span>
+            </button>
+            <!-- Botón Agregar 1Q -->
+            <button onclick="openAddModal('q1')" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all focus:ring-2 focus:ring-emerald-500/20">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg>
+              <span>+ Gasto</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Presupuesto / Ingreso Modificable 1Q y Balance Libre -->
+        <div class="p-4 bg-slate-50/80 border-b border-slate-100 space-y-3">
+          
+          <!-- Fila de Ingreso Modificable -->
+          <div class="flex flex-wrap items-center justify-between gap-2 bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+            <div class="flex-1 min-w-[140px]">
+              <label for="q1-income-input" class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">Mi Ingreso 1Q (¿Cuánto Gané?)</label>
+              <span class="text-[10px] text-slate-400">Total que recibes en esta primera quincena</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-slate-400 font-bold">$</span>
+              <input 
+                type="number" 
+                id="q1-income-input" 
+                class="w-32 sm:w-40 px-3 py-1.5 text-sm font-bold text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-right"
+                placeholder="0"
+                min="0"
+                step="any"
+              >
+            </div>
+          </div>
+
+          <!-- Cuadro de Cálculo: Ingreso - Gastos = Dinero Libre 1Q -->
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="p-2 rounded-xl bg-white border border-slate-200">
+              <span class="block text-[10px] font-bold text-slate-400 uppercase">¿Gané?</span>
+              <span id="q1-disp-income" class="text-xs sm:text-sm font-black text-emerald-700">$0</span>
+            </div>
+            <div class="p-2 rounded-xl bg-white border border-slate-200">
+              <span class="block text-[10px] font-bold text-slate-400 uppercase">¿Gasté?</span>
+              <span id="q1-disp-expenses" class="text-xs sm:text-sm font-black text-slate-800">$0</span>
+            </div>
+            <div id="q1-free-card" class="p-2 rounded-xl bg-emerald-100 border border-emerald-300">
+              <span class="block text-[10px] font-bold text-emerald-900 uppercase" id="q1-free-label">¿Me Quedó?</span>
+              <span id="q1-disp-free" class="text-xs sm:text-sm font-black text-emerald-800">$0</span>
+            </div>
+          </div>
+
+          <!-- Barra multicolor de avance del semáforo -->
+          <div class="space-y-1 pt-1">
+            <div class="flex justify-between text-[11px] text-slate-500">
+              <span>Progreso de gastos en 1Q:</span>
+              <span id="q1-progress-pct" class="font-bold text-slate-700">0% cubierto</span>
+            </div>
+            <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden flex">
+              <div id="q1-bar-green" class="h-full bg-emerald-500 transition-all duration-300" style="width: 0%" title="Completado"></div>
+              <div id="q1-bar-yellow" class="h-full bg-amber-400 transition-all duration-300" style="width: 0%" title="Por completar"></div>
+              <div id="q1-bar-red" class="h-full bg-rose-500 transition-all duration-300" style="width: 0%" title="Sin realizar"></div>
+            </div>
+            <div class="flex items-center justify-between text-[10px] text-slate-500 pt-0.5">
+              <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span id="q1-cnt-green">0</span> pagados</div>
+              <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span><span id="q1-cnt-yellow">0</span> en proceso</div>
+              <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span><span id="q1-cnt-red">0</span> pendientes</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Lista de Casillas de Gastos 1Q -->
+        <div class="p-4 flex-1 space-y-2.5" id="q1-expenses-list">
+          <!-- Renderizado dinámico -->
+        </div>
+
+        <!-- Botón Inferior Grande para Agregar Gasto a 1Q -->
+        <div class="p-4 pt-1">
+          <button 
+            type="button" 
+            onclick="openAddModal('q1')" 
+            class="w-full py-2.5 px-4 border-2 border-dashed border-emerald-300 hover:border-emerald-500 rounded-xl text-emerald-700 bg-emerald-50/40 hover:bg-emerald-50 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-2xs"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg>
+            <span>+ Agregar Gasto a la 1ra Quincena</span>
+          </button>
+        </div>
+
+        <div class="p-2.5 bg-slate-50 border-t border-slate-100 text-center text-[11px] text-slate-400">
+          Primera quincena: días 1 al 15
+        </div>
+      </section>
+
+      <!-- ================= 2DA QUINCENA ================= -->
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+        
+        <!-- Header 2Q -->
+        <div class="p-4 sm:p-5 border-b border-slate-100 bg-gradient-to-r from-blue-50/80 via-blue-50/40 to-white flex flex-wrap items-center justify-between gap-2.5">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm shadow-sm flex-shrink-0">
+              2Q
+            </div>
+            <div>
+              <h3 class="font-bold text-slate-900 text-base leading-tight">Segunda Quincena</h3>
+              <p class="text-xs text-slate-500">Días 16 al fin de mes</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <!-- Botón WhatsApp 2Q -->
+            <button onclick="openWhatsAppModal('q2')" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-100 hover:bg-blue-200 text-blue-800 text-xs font-bold transition-all border border-blue-200" title="Enviar reporte de 2da Quincena por WhatsApp">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12.031 2C6.516 2 2.02 6.495 2.02 12.01c0 1.834.498 3.553 1.365 5.038L2.01 22.02l5.127-1.344a9.98 9.98 0 004.894 1.272h.004c5.515 0 10.012-4.496 10.012-10.012 0-2.673-1.04-5.184-2.932-7.076C17.222 3.037 14.71 2 12.031 2zm0 1.667c2.23 0 4.324.869 5.897 2.443 1.573 1.574 2.439 3.668 2.439 5.9 0 4.598-3.74 8.344-8.336 8.344a8.297 8.297 0 01-4.223-1.144l-.303-.18-3.045.798.813-2.969-.197-.315A8.307 8.307 0 013.687 12.01c0-4.6 3.743-8.343 8.344-8.343zm4.567 11.782c-.25-.125-1.48-.73-1.71-.813-.23-.083-.396-.125-.563.125-.166.25-.645.813-.791.979-.146.167-.292.188-.542.063-.25-.125-1.054-.389-2.008-1.24-.742-.662-1.243-1.479-1.39-1.729-.145-.25-.015-.386.11-.51.114-.114.25-.292.375-.438.125-.146.167-.25.25-.417.084-.167.042-.313-.02-.438-.063-.125-.563-1.354-.772-1.854-.203-.488-.41-.422-.563-.43-.146-.008-.312-.01-.479-.01-.167 0-.437.063-.666.313-.23.25-.875.854-.875 2.083 0 1.23 1 2.417 1.042 2.583.146.167 1.96 2.99 4.747 4.19.664.286 1.182.457 1.587.585.667.212 1.275.182 1.755.11.536-.08 1.48-.605 1.688-1.188.208-.584.208-1.084.146-1.188-.063-.104-.23-.167-.48-.292z"/>
+              </svg>
+              <span>WhatsApp</span>
+            </button>
+            <!-- Botón Agregar 2Q -->
+            <button onclick="openAddModal('q2')" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-all focus:ring-2 focus:ring-blue-500/20">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg>
+              <span>+ Gasto</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Presupuesto / Ingreso Modificable 2Q y Balance Libre -->
+        <div class="p-4 bg-slate-50/80 border-b border-slate-100 space-y-3">
+          
+          <!-- Fila de Ingreso Modificable -->
+          <div class="flex flex-wrap items-center justify-between gap-2 bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+            <div class="flex-1 min-w-[140px]">
+              <label for="q2-income-input" class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">Mi Ingreso 2Q (¿Cuánto Gané?)</label>
+              <span class="text-[10px] text-slate-400">Total que recibes en esta segunda quincena</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-slate-400 font-bold">$</span>
+              <input 
+                type="number" 
+                id="q2-income-input" 
+                class="w-32 sm:w-40 px-3 py-1.5 text-sm font-bold text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-right"
+                placeholder="0"
+                min="0"
+                step="any"
+              >
+            </div>
+          </div>
+
+          <!-- Cuadro de Cálculo: Ingreso - Gastos = Dinero Libre 2Q -->
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="p-2 rounded-xl bg-white border border-slate-200">
+              <span class="block text-[10px] font-bold text-slate-400 uppercase">¿Gané?</span>
+              <span id="q2-disp-income" class="text-xs sm:text-sm font-black text-blue-700">$0</span>
+            </div>
+            <div class="p-2 rounded-xl bg-white border border-slate-200">
+              <span class="block text-[10px] font-bold text-slate-400 uppercase">¿Gasté?</span>
+              <span id="q2-disp-expenses" class="text-xs sm:text-sm font-black text-slate-800">$0</span>
+            </div>
+            <div id="q2-free-card" class="p-2 rounded-xl bg-blue-100 border border-blue-300">
+              <span class="block text-[10px] font-bold text-blue-900 uppercase" id="q2-free-label">¿Me Quedó?</span>
+              <span id="q2-disp-free" class="text-xs sm:text-sm font-black text-blue-800">$0</span>
+            </div>
+          </div>
+
+          <!-- Barra multicolor de avance del semáforo -->
+          <div class="space-y-1 pt-1">
+            <div class="flex justify-between text-[11px] text-slate-500">
+              <span>Progreso de gastos en 2Q:</span>
+              <span id="q2-progress-pct" class="font-bold text-slate-700">0% cubierto</span>
+            </div>
+            <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden flex">
+              <div id="q2-bar-green" class="h-full bg-emerald-500 transition-all duration-300" style="width: 0%" title="Completado"></div>
+              <div id="q2-bar-yellow" class="h-full bg-amber-400 transition-all duration-300" style="width: 0%" title="Por completar"></div>
+              <div id="q2-bar-red" class="h-full bg-rose-500 transition-all duration-300" style="width: 0%" title="Sin realizar"></div>
+            </div>
+            <div class="flex items-center justify-between text-[10px] text-slate-500 pt-0.5">
+              <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span id="q2-cnt-green">0</span> pagados</div>
+              <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span><span id="q2-cnt-yellow">0</span> en proceso</div>
+              <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span><span id="q2-cnt-red">0</span> pendientes</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Lista de Casillas de Gastos 2Q -->
+        <div class="p-4 flex-1 space-y-2.5" id="q2-expenses-list">
+          <!-- Renderizado dinámico -->
+        </div>
+
+        <!-- Botón Inferior Grande para Agregar Gasto a 2Q -->
+        <div class="p-4 pt-1">
+          <button 
+            type="button" 
+            onclick="openAddModal('q2')" 
+            class="w-full py-2.5 px-4 border-2 border-dashed border-blue-300 hover:border-blue-500 rounded-xl text-blue-700 bg-blue-50/40 hover:bg-blue-50 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-2xs"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg>
+            <span>+ Agregar Gasto a la 2da Quincena</span>
+          </button>
+        </div>
+
+        <div class="p-2.5 bg-slate-50 border-t border-slate-100 text-center text-[11px] text-slate-400">
+          Segunda quincena: días 16 al fin de mes
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- Modal para Agregar / Editar Gasto -->
+  <div id="expense-modal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+        <h3 id="modal-title" class="font-bold text-slate-900 text-base">Registrar Nuevo Gasto</h3>
+        <button id="btn-close-modal" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <form id="expense-form" class="p-5 space-y-4">
+        <input type="hidden" id="form-expense-id">
+        <input type="hidden" id="form-quincena">
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Nombre del Gasto *</label>
+          <input type="text" id="form-name" required placeholder="Ej: Arriendo, Servicios públicos, Tarjeta..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Valor ($) *</label>
+            <input type="number" id="form-amount" required min="1" step="any" placeholder="0" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Categoría</label>
+            <select id="form-category" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+              <option value="Hogar">Hogar / Vivienda</option>
+              <option value="Servicios">Servicios Básicos</option>
+              <option value="Alimentación">Alimentación</option>
+              <option value="Transporte">Transporte</option>
+              <option value="Financiero">Deudas / Tarjetas</option>
+              <option value="Salud">Salud / Educación</option>
+              <option value="Ocio">Ocio / Personal</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Estado de la Casilla con Código de Color -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Estado de la Casilla (Color) *</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="relative flex flex-col items-center p-2.5 rounded-xl border border-rose-200 bg-rose-50/60 cursor-pointer hover:bg-rose-100/50 transition-colors">
+              <input type="radio" name="form-status" value="red" class="sr-only peer" checked>
+              <span class="w-4 h-4 rounded-full bg-rose-500 mb-1.5 peer-checked:ring-4 peer-checked:ring-rose-200"></span>
+              <span class="text-[11px] font-bold text-rose-800 text-center">Rojo</span>
+              <span class="text-[10px] text-rose-600 text-center">Sin realizar</span>
+              <div class="absolute inset-0 rounded-xl border-2 border-rose-500 pointer-events-none opacity-0 peer-checked:opacity-100"></div>
+            </label>
+
+            <label class="relative flex flex-col items-center p-2.5 rounded-xl border border-amber-200 bg-amber-50/60 cursor-pointer hover:bg-amber-100/50 transition-colors">
+              <input type="radio" name="form-status" value="yellow" class="sr-only peer">
+              <span class="w-4 h-4 rounded-full bg-amber-400 mb-1.5 peer-checked:ring-4 peer-checked:ring-amber-200"></span>
+              <span class="text-[11px] font-bold text-amber-800 text-center">Amarillo</span>
+              <span class="text-[10px] text-amber-600 text-center">Por completar</span>
+              <div class="absolute inset-0 rounded-xl border-2 border-amber-500 pointer-events-none opacity-0 peer-checked:opacity-100"></div>
+            </label>
+
+            <label class="relative flex flex-col items-center p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60 cursor-pointer hover:bg-emerald-100/50 transition-colors">
+              <input type="radio" name="form-status" value="green" class="sr-only peer">
+              <span class="w-4 h-4 rounded-full bg-emerald-500 mb-1.5 peer-checked:ring-4 peer-checked:ring-emerald-200"></span>
+              <span class="text-[11px] font-bold text-emerald-800 text-center">Verde</span>
+              <span class="text-[10px] text-emerald-600 text-center">Completado</span>
+              <div class="absolute inset-0 rounded-xl border-2 border-emerald-500 pointer-events-none opacity-0 peer-checked:opacity-100"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+          <!-- Botón de eliminar directo dentro del modal (visible al editar) -->
+          <button 
+            type="button" 
+            id="btn-modal-delete-expense" 
+            class="hidden px-3.5 py-2 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200 rounded-xl transition-colors flex items-center gap-1.5"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            <span>Eliminar</span>
+          </button>
+
+          <div class="flex items-center gap-2 ml-auto">
+            <button type="button" id="btn-cancel-modal" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">Cancelar</button>
+            <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl shadow-md transition-colors">Guardar Gasto</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Enviar Resumen por WhatsApp -->
+  <div id="whatsapp-modal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden space-y-0">
+      
+      <!-- Encabezado Modal WhatsApp -->
+      <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-emerald-50/70">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12.031 2C6.516 2 2.02 6.495 2.02 12.01c0 1.834.498 3.553 1.365 5.038L2.01 22.02l5.127-1.344a9.98 9.98 0 004.894 1.272h.004c5.515 0 10.012-4.496 10.012-10.012 0-2.673-1.04-5.184-2.932-7.076C17.222 3.037 14.71 2 12.031 2zm0 1.667c2.23 0 4.324.869 5.897 2.443 1.573 1.574 2.439 3.668 2.439 5.9 0 4.598-3.74 8.344-8.336 8.344a8.297 8.297 0 01-4.223-1.144l-.303-.18-3.045.798.813-2.969-.197-.315A8.307 8.307 0 013.687 12.01c0-4.6 3.743-8.343 8.344-8.343zm4.567 11.782c-.25-.125-1.48-.73-1.71-.813-.23-.083-.396-.125-.563.125-.166.25-.645.813-.791.979-.146.167-.292.188-.542.063-.25-.125-1.054-.389-2.008-1.24-.742-.662-1.243-1.479-1.39-1.729-.145-.25-.015-.386.11-.51.114-.114.25-.292.375-.438.125-.146.167-.25.25-.417.084-.167.042-.313-.02-.438-.063-.125-.563-1.354-.772-1.854-.203-.488-.41-.422-.563-.43-.146-.008-.312-.01-.479-.01-.167 0-.437.063-.666.313-.23.25-.875.854-.875 2.083 0 1.23 1 2.417 1.042 2.583.146.167 1.96 2.99 4.747 4.19.664.286 1.182.457 1.587.585.667.212 1.275.182 1.755.11.536-.08 1.48-.605 1.688-1.188.208-.584.208-1.084.146-1.188-.063-.104-.23-.167-.48-.292z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-sm sm:text-base" id="wa-modal-title">Enviar Resumen por WhatsApp</h3>
+            <p class="text-[11px] text-slate-500">¿Cuánto gasté, cuánto gané y cuánto me quedó?</p>
+          </div>
+        </div>
+        <button id="btn-close-wa-modal" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+
+      <!-- Cuerpo del Modal -->
+      <div class="p-5 space-y-4">
+        
+        <!-- Casilla para el Número de WhatsApp -->
+        <div>
+          <label for="wa-phone-input" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+            Número de WhatsApp destinatario:
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold text-xs pointer-events-none">
+              📞
+            </span>
+            <input 
+              type="tel" 
+              id="wa-phone-input" 
+              placeholder="Ej: 573001234567 o 3001234567" 
+              class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+            >
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">
+            💡 Puedes colocar el número con código de país (ej. Colombia: <code>573...</code>) o dejarlo en blanco para elegir el contacto directamente en tu aplicación de WhatsApp.
+          </p>
+        </div>
+
+        <!-- Vista previa del mensaje formateado -->
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Vista previa del mensaje:</span>
+            <button id="btn-copy-wa-text" class="text-[11px] font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 hover:underline">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+              <span>Copiar texto</span>
+            </button>
+          </div>
+          <pre id="wa-preview-text" class="p-3 bg-slate-900 text-emerald-400 font-mono text-xs rounded-xl overflow-x-auto max-h-48 whitespace-pre-wrap leading-relaxed border border-slate-800 shadow-inner"></pre>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" id="btn-cancel-wa-modal" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Cerrar</button>
+          <button type="button" id="btn-send-wa-action" class="px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md transition-all flex items-center gap-2">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12.031 2C6.516 2 2.02 6.495 2.02 12.01c0 1.834.498 3.553 1.365 5.038L2.01 22.02l5.127-1.344a9.98 9.98 0 004.894 1.272h.004c5.515 0 10.012-4.496 10.012-10.012 0-2.673-1.04-5.184-2.932-7.076C17.222 3.037 14.71 2 12.031 2zm0 1.667c2.23 0 4.324.869 5.897 2.443 1.573 1.574 2.439 3.668 2.439 5.9 0 4.598-3.74 8.344-8.336 8.344a8.297 8.297 0 01-4.223-1.144l-.303-.18-3.045.798.813-2.969-.197-.315A8.307 8.307 0 013.687 12.01c0-4.6 3.743-8.343 8.344-8.343zm4.567 11.782c-.25-.125-1.48-.73-1.71-.813-.23-.083-.396-.125-.563.125-.166.25-.645.813-.791.979-.146.167-.292.188-.542.063-.25-.125-1.054-.389-2.008-1.24-.742-.662-1.243-1.479-1.39-1.729-.145-.25-.015-.386.11-.51.114-.114.25-.292.375-.438.125-.146.167-.25.25-.417.084-.167.042-.313-.02-.438-.063-.125-.563-1.354-.772-1.854-.203-.488-.41-.422-.563-.43-.146-.008-.312-.01-.479-.01-.167 0-.437.063-.666.313-.23.25-.875.854-.875 2.083 0 1.23 1 2.417 1.042 2.583.146.167 1.96 2.99 4.747 4.19.664.286 1.182.457 1.587.585.667.212 1.275.182 1.755.11.536-.08 1.48-.605 1.688-1.188.208-.584.208-1.084.146-1.188-.063-.104-.23-.167-.48-.292z"/>
+            </svg>
+            <span>Abrir y Enviar por WhatsApp</span>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal Crear Nuevo Usuario -->
+  <div id="user-modal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-900 text-base">Crear Nuevo Usuario</h3>
+        <button id="btn-close-user-modal" class="text-slate-400 hover:text-slate-600 p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <form id="user-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Nombre o Alias del Usuario *</label>
+          <input type="text" id="new-user-name" required placeholder="Ej: Juan, María, Negocio..." class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Color Distintivo</label>
+          <div class="flex items-center gap-2">
+            <label class="cursor-pointer"><input type="radio" name="new-user-color" value="#16a34a" class="sr-only peer" checked><span class="w-6 h-6 rounded-full bg-emerald-600 block peer-checked:ring-4 peer-checked:ring-emerald-200"></span></label>
+            <label class="cursor-pointer"><input type="radio" name="new-user-color" value="#2563eb" class="sr-only peer"><span class="w-6 h-6 rounded-full bg-blue-600 block peer-checked:ring-4 peer-checked:ring-blue-200"></span></label>
+            <label class="cursor-pointer"><input type="radio" name="new-user-color" value="#9333ea" class="sr-only peer"><span class="w-6 h-6 rounded-full bg-purple-600 block peer-checked:ring-4 peer-checked:ring-purple-200"></span></label>
+            <label class="cursor-pointer"><input type="radio" name="new-user-color" value="#ea580c" class="sr-only peer"><span class="w-6 h-6 rounded-full bg-orange-600 block peer-checked:ring-4 peer-checked:ring-orange-200"></span></label>
+            <label class="cursor-pointer"><input type="radio" name="new-user-color" value="#0891b2" class="sr-only peer"><span class="w-6 h-6 rounded-full bg-cyan-600 block peer-checked:ring-4 peer-checked:ring-cyan-200"></span></label>
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-400">Cada usuario tendrá sus propios gastos, presupuestos y meses completamente independientes.</p>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" id="btn-cancel-user-modal" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Cancelar</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm">Crear Usuario</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Administrar Usuarios -->
+  <div id="manage-users-modal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-900 text-base">Administrar Usuarios</h3>
+        <button id="btn-close-manage-modal" class="text-slate-400 hover:text-slate-600 p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <div id="users-list-manage" class="space-y-2 max-h-60 overflow-y-auto">
+        <!-- Lista de usuarios renderizada dinámicamente -->
+      </div>
+      <div class="pt-2 flex justify-end">
+        <button id="btn-done-manage-modal" class="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmación de Eliminación -->
+  <div id="delete-modal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-100 text-center space-y-4">
+      <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+      </div>
+      <div>
+        <h4 class="font-bold text-slate-900 text-base" id="delete-modal-title">¿Eliminar este elemento?</h4>
+        <p class="text-xs text-slate-500 mt-1" id="delete-item-name">Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="flex items-center justify-center gap-2 pt-2">
+        <button id="btn-cancel-delete" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">Cancelar</button>
+        <button id="btn-confirm-delete" class="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm transition-colors">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-2">
+    <span id="toast-message">Mensaje</span>
+  </div>
+
+  <script>
+    // --- Configuración y Estado Global ---
+    const MONTH_NAMES = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+
+    let currentDate = new Date(2026, 9, 14); // Octubre 2026
+    let currentFilter = 'all';
+    let deleteAction = null;
+    let currentWaScope = 'q1'; // 'q1', 'q2' o 'month'
+
+    // Datos por defecto iniciales
+    const INITIAL_STORE = {
+      activeUserId: 'usr-1',
+      savedWaPhone: '',
+      users: [
+        { id: 'usr-1', name: 'Mi Perfil (Personal)', color: '#16a34a' },
+        { id: 'usr-2', name: 'Pareja / Familiar', color: '#2563eb' }
+      ],
+      userData: {
+        'usr-1': {
+          '2026-09': {
+            income_q1: 1850000,
+            income_q2: 1900000,
+            q1: [
+              { id: 'exp-1', name: 'Arriendo Apartamento', amount: 950000, category: 'Hogar', status: 'green' },
+              { id: 'exp-2', name: 'Servicio de Internet Fibra', amount: 85000, category: 'Servicios', status: 'green' },
+              { id: 'exp-3', name: 'Mercado Quincenal 1', amount: 350000, category: 'Alimentación', status: 'yellow' },
+              { id: 'exp-4', name: 'Seguro Moto / Auto', amount: 120000, category: 'Transporte', status: 'red' }
+            ],
+            q2: [
+              { id: 'exp-5', name: 'Factura Energía y Gas', amount: 140000, category: 'Servicios', status: 'green' },
+              { id: 'exp-6', name: 'Cuota Tarjeta Bancaria', amount: 280000, category: 'Financiero', status: 'yellow' },
+              { id: 'exp-7', name: 'Mercado Quincenal 2', amount: 320000, category: 'Alimentación', status: 'red' },
+              { id: 'exp-8', name: 'Ahorro Imprevistos', amount: 200000, category: 'Financiero', status: 'red' }
+            ]
+          }
+        },
+        'usr-2': {
+          '2026-09': {
+            income_q1: 1400000,
+            income_q2: 1500000,
+            q1: [
+              { id: 'exp-u2-1', name: 'Gimnasio y Deporte', amount: 110000, category: 'Salud', status: 'green' },
+              { id: 'exp-u2-2', name: 'Compras Supermercado', amount: 280000, category: 'Alimentación', status: 'yellow' }
+            ],
+            q2: [
+              { id: 'exp-u2-3', name: 'Plan Celular', amount: 65000, category: 'Servicios', status: 'red' },
+              { id: 'exp-u2-4', name: 'Cursos Online', amount: 150000, category: 'Salud', status: 'red' }
+            ]
+          }
+        }
+      }
+    };
+
+    let store = {};
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem('gastos_quincenales_multiuser_v2');
+        if (raw) {
+          store = JSON.parse(raw);
+          if (!store.users || !store.users.length) throw new Error('Formato inválido');
+        } else {
+          store = JSON.parse(JSON.stringify(INITIAL_STORE));
+          saveData();
+        }
+      } catch (e) {
+        console.warn('Cargando datos por defecto:', e);
+        store = JSON.parse(JSON.stringify(INITIAL_STORE));
+      }
+    }
+
+    function saveData() {
+      try {
+        localStorage.setItem('gastos_quincenales_multiuser_v2', JSON.stringify(store));
+      } catch (e) {
+        console.warn('Error guardando en LocalStorage:', e);
+      }
+    }
+
+    function getMonthKey(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth()).padStart(2, '0');
+      return `${year}-${month}`;
+    }
+
+    function getActiveUser() {
+      const u = store.users.find(x => x.id === store.activeUserId);
+      return u || store.users[0];
+    }
+
+    function getActiveUserData() {
+      const uId = store.activeUserId;
+      if (!store.userData[uId]) {
+        store.userData[uId] = {};
+      }
+      const mKey = getMonthKey(currentDate);
+      if (!store.userData[uId][mKey]) {
+        store.userData[uId][mKey] = {
+          income_q1: 0,
+          income_q2: 0,
+          q1: [],
+          q2: []
+        };
+      }
+      return store.userData[uId][mKey];
+    }
+
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        maximumFractionDigits: 0
+      }).format(amount);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      toastMsg.textContent = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // --- Ciclo de Semáforo: Rojo -> Amarillo -> Verde -> Rojo ---
+    function cycleStatus(id, quincena) {
+      const monthData = getActiveUserData();
+      const list = monthData[quincena];
+      const item = list.find(x => x.id === id);
+      if (!item) return;
+
+      const nextStatus = {
+        'red': 'yellow',
+        'yellow': 'green',
+        'green': 'red'
+      };
+
+      item.status = nextStatus[item.status] || 'red';
+      saveData();
+      renderAll();
+
+      const names = { green: 'Pagado (Verde)', yellow: 'Por completar (Amarillo)', red: 'Sin realizar (Rojo)' };
+      showToast(`${item.name}: ${names[item.status]}`);
+    }
+
+    // --- Renderizado de Lista de Gastos con Botones Visibles ---
+    function renderQuincena(quincenaKey, containerId) {
+      const container = document.getElementById(containerId);
+      const monthData = getActiveUserData();
+      const items = monthData[quincenaKey] || [];
+
+      // Filtrado
+      const filtered = items.filter(item => {
+        if (currentFilter === 'all') return true;
+        return item.status === currentFilter;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="py-6 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+            <svg class="w-8 h-8 mx-auto mb-1.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <p class="text-xs font-medium">No hay casillas de gastos en esta quincena</p>
+            <button onclick="openAddModal('${quincenaKey}')" class="mt-2 text-xs font-bold text-emerald-600 hover:text-emerald-700 underline">
+              + Agregar primer gasto aquí
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => {
+        let colorClasses = {
+          border: 'border-slate-200',
+          dotBg: 'bg-rose-500',
+          badgeText: 'Sin realizar',
+          badgeBg: 'status-badge-red',
+          cardHover: 'hover:border-rose-300'
+        };
+
+        if (item.status === 'green') {
+          colorClasses = {
+            border: 'border-emerald-200',
+            dotBg: 'bg-emerald-500',
+            badgeText: 'Pagado',
+            badgeBg: 'status-badge-green',
+            cardHover: 'hover:border-emerald-300'
+          };
+        } else if (item.status === 'yellow') {
+          colorClasses = {
+            border: 'border-amber-200',
+            dotBg: 'bg-amber-400',
+            badgeText: 'Por completar',
+            badgeBg: 'status-badge-yellow',
+            cardHover: 'hover:border-amber-300'
+          };
+        }
+
+        return `
+          <div class="bg-white p-3 rounded-xl border ${colorClasses.border} ${colorClasses.cardHover} shadow-2xs transition-all flex items-center justify-between gap-2.5">
+            
+            <!-- Botón del Semáforo -->
+            <button 
+              type="button"
+              onclick="cycleStatus('${item.id}', '${quincenaKey}')" 
+              class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-transform active:scale-90 hover:scale-110 focus:outline-none"
+              title="Haz clic para cambiar color: Rojo -> Amarillo -> Verde"
+            >
+              <span class="w-5 h-5 rounded-full ${colorClasses.dotBg} shadow-xs ring-4 ring-slate-100 flex items-center justify-center text-white text-[10px] font-bold">
+                ${item.status === 'green' ? '✓' : item.status === 'yellow' ? '⏳' : '✕'}
+              </span>
+            </button>
+
+            <!-- Datos del Gasto (Clic para editar) -->
+            <div class="flex-1 min-w-0 cursor-pointer" onclick="openEditModal('${item.id}', '${quincenaKey}')" title="Clic para editar este gasto">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="font-bold text-slate-800 text-sm truncate">${escapeHtml(item.name)}</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full ${colorClasses.badgeBg} font-bold">${colorClasses.badgeText}</span>
+              </div>
+              <div class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                <span>${escapeHtml(item.category || 'Gasto')}</span>
+                <span>•</span>
+                <span class="text-slate-500 font-medium">Editar datos</span>
+              </div>
+            </div>
+
+            <!-- Valor y Botones Visibles: Editar y Eliminar -->
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <div class="text-sm font-black text-slate-900">${formatCurrency(item.amount)}</div>
+              
+              <div class="flex items-center gap-1">
+                <!-- Botón Editar Visible -->
+                <button 
+                  type="button"
+                  onclick="openEditModal('${item.id}', '${quincenaKey}')" 
+                  class="p-1.5 text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-200"
+                  title="Editar gasto"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                </button>
+
+                <!-- Botón Eliminar Visible (Rojo) -->
+                <button 
+                  type="button"
+                  onclick="promptDeleteExpense('${item.id}', '${escapeHtml(item.name)}', '${quincenaKey}')" 
+                  class="p-1.5 text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors border border-rose-200"
+                  title="Eliminar casilla de gasto"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+    }
+
+    // --- Métricas, Presupuesto Quincenal y Dinero Libre ---
+    function updateMetricsAndBalances() {
+      const monthData = getActiveUserData();
+      const user = getActiveUser();
+
+      // Headers y Banner
+      document.getElementById('banner-user-name').textContent = user.name;
+      document.getElementById('banner-user-name').style.color = user.color || '#16a34a';
+      const monthStr = `${MONTH_NAMES[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+      document.getElementById('current-month-label').textContent = monthStr;
+      document.getElementById('banner-period-name').textContent = monthStr;
+
+      // Actualizar valores de los inputs de ingreso
+      const q1Income = Number(monthData.income_q1) || 0;
+      const q2Income = Number(monthData.income_q2) || 0;
+      document.getElementById('q1-income-input').value = q1Income > 0 ? q1Income : '';
+      document.getElementById('q2-income-input').value = q2Income > 0 ? q2Income : '';
+
+      // Cálculos por Quincena
+      function calculateQuincena(items, income) {
+        let total = 0;
+        let green = 0, greenCnt = 0;
+        let yellow = 0, yellowCnt = 0;
+        let red = 0, redCnt = 0;
+
+        items.forEach(it => {
+          const val = Number(it.amount) || 0;
+          total += val;
+          if (it.status === 'green') {
+            green += val;
+            greenCnt++;
+          } else if (it.status === 'yellow') {
+            yellow += val;
+            yellowCnt++;
+          } else {
+            red += val;
+            redCnt++;
+          }
+        });
+
+        const free = income - total;
+        const currentCash = income - green;
+
+        return { total, green, yellow, red, greenCnt, yellowCnt, redCnt, free, currentCash };
+      }
+
+      const q1Stats = calculateQuincena(monthData.q1, q1Income);
+      const q2Stats = calculateQuincena(monthData.q2, q2Income);
+
+      // --- Render 1Q ---
+      document.getElementById('q1-disp-income').textContent = formatCurrency(q1Income);
+      document.getElementById('q1-disp-expenses').textContent = formatCurrency(q1Stats.total);
+      
+      const q1FreeCard = document.getElementById('q1-free-card');
+      const q1FreeLabel = document.getElementById('q1-free-label');
+      const q1DispFree = document.getElementById('q1-disp-free');
+      q1DispFree.textContent = formatCurrency(q1Stats.free);
+
+      if (q1Stats.free >= 0) {
+        q1FreeCard.className = 'p-2 rounded-xl bg-emerald-50 border border-emerald-300';
+        q1FreeLabel.textContent = '¿Me Quedó?';
+        q1FreeLabel.className = 'block text-[10px] font-bold text-emerald-800 uppercase';
+        q1DispFree.className = 'text-xs sm:text-sm font-black text-emerald-700';
+      } else {
+        q1FreeCard.className = 'p-2 rounded-xl bg-rose-50 border border-rose-300';
+        q1FreeLabel.textContent = 'Déficit';
+        q1FreeLabel.className = 'block text-[10px] font-bold text-rose-800 uppercase';
+        q1DispFree.className = 'text-xs sm:text-sm font-black text-rose-700';
+      }
+
+      document.getElementById('q1-cnt-green').textContent = q1Stats.greenCnt;
+      document.getElementById('q1-cnt-yellow').textContent = q1Stats.yellowCnt;
+      document.getElementById('q1-cnt-red').textContent = q1Stats.redCnt;
+
+      const q1T = q1Stats.total || 1;
+      document.getElementById('q1-bar-green').style.width = q1Stats.total ? `${(q1Stats.green / q1T) * 100}%` : '0%';
+      document.getElementById('q1-bar-yellow').style.width = q1Stats.total ? `${(q1Stats.yellow / q1T) * 100}%` : '0%';
+      document.getElementById('q1-bar-red').style.width = q1Stats.total ? `${(q1Stats.red / q1T) * 100}%` : '0%';
+
+      const q1CoveredPct = q1Income > 0 ? Math.round((q1Stats.total / q1Income) * 100) : 0;
+      document.getElementById('q1-progress-pct').textContent = `${q1CoveredPct}% del ingreso comprometido`;
+
+      // --- Render 2Q ---
+      document.getElementById('q2-disp-income').textContent = formatCurrency(q2Income);
+      document.getElementById('q2-disp-expenses').textContent = formatCurrency(q2Stats.total);
+      
+      const q2FreeCard = document.getElementById('q2-free-card');
+      const q2FreeLabel = document.getElementById('q2-free-label');
+      const q2DispFree = document.getElementById('q2-disp-free');
+      q2DispFree.textContent = formatCurrency(q2Stats.free);
+
+      if (q2Stats.free >= 0) {
+        q2FreeCard.className = 'p-2 rounded-xl bg-blue-50 border border-blue-300';
+        q2FreeLabel.textContent = '¿Me Quedó?';
+        q2FreeLabel.className = 'block text-[10px] font-bold text-blue-900 uppercase';
+        q2DispFree.className = 'text-xs sm:text-sm font-black text-blue-700';
+      } else {
+        q2FreeCard.className = 'p-2 rounded-xl bg-rose-50 border border-rose-300';
+        q2FreeLabel.textContent = 'Déficit';
+        q2FreeLabel.className = 'block text-[10px] font-bold text-rose-800 uppercase';
+        q2DispFree.className = 'text-xs sm:text-sm font-black text-rose-700';
+      }
+
+      document.getElementById('q2-cnt-green').textContent = q2Stats.greenCnt;
+      document.getElementById('q2-cnt-yellow').textContent = q2Stats.yellowCnt;
+      document.getElementById('q2-cnt-red').textContent = q2Stats.redCnt;
+
+      const q2T = q2Stats.total || 1;
+      document.getElementById('q2-bar-green').style.width = q2Stats.total ? `${(q2Stats.green / q2T) * 100}%` : '0%';
+      document.getElementById('q2-bar-yellow').style.width = q2Stats.total ? `${(q2Stats.yellow / q2T) * 100}%` : '0%';
+      document.getElementById('q2-bar-red').style.width = q2Stats.total ? `${(q2Stats.red / q2T) * 100}%` : '0%';
+
+      const q2CoveredPct = q2Income > 0 ? Math.round((q2Stats.total / q2Income) * 100) : 0;
+      document.getElementById('q2-progress-pct').textContent = `${q2CoveredPct}% del ingreso comprometido`;
+
+      // --- Métricas Mensuales Globales ---
+      const monthlyIncome = q1Income + q2Income;
+      const monthlyExpenses = q1Stats.total + q2Stats.total;
+      const monthlyFree = monthlyIncome - monthlyExpenses;
+      const monthlyCashAvailable = monthlyIncome - (q1Stats.green + q2Stats.green);
+
+      document.getElementById('metric-monthly-income').textContent = formatCurrency(monthlyIncome);
+      document.getElementById('metric-monthly-expenses').textContent = formatCurrency(monthlyExpenses);
+      document.getElementById('metric-paid-count').textContent = `${q1Stats.greenCnt + q2Stats.greenCnt} pagados`;
+      document.getElementById('metric-unpaid-count').textContent = `${q1Stats.yellowCnt + q2Stats.yellowCnt + q1Stats.redCnt + q2Stats.redCnt} pendientes`;
+      
+      const freeMetricEl = document.getElementById('metric-monthly-free');
+      const freeCardEl = document.getElementById('card-monthly-free');
+      const freeLabelEl = document.getElementById('label-monthly-free');
+      const freeDescEl = document.getElementById('desc-monthly-free');
+      freeMetricEl.textContent = formatCurrency(monthlyFree);
+
+      if (monthlyFree >= 0) {
+        freeCardEl.className = 'bg-blue-50/70 border border-blue-200 rounded-xl p-3.5';
+        freeLabelEl.className = 'text-[11px] font-bold uppercase tracking-wider text-blue-900';
+        freeLabelEl.textContent = '¿Cuánto Me Quedó?';
+        freeMetricEl.className = 'text-xl sm:text-2xl font-black text-blue-700 mt-0.5';
+        freeDescEl.textContent = 'Dinero libre disponible para ahorro o disfrute';
+        freeDescEl.className = 'text-[10px] text-blue-600 font-medium';
+      } else {
+        freeCardEl.className = 'bg-rose-50 border border-rose-200 rounded-xl p-3.5';
+        freeLabelEl.className = 'text-[11px] font-bold uppercase tracking-wider text-rose-900';
+        freeLabelEl.textContent = 'Déficit Mensual';
+        freeMetricEl.className = 'text-xl sm:text-2xl font-black text-rose-700 mt-0.5';
+        freeDescEl.textContent = 'Tus gastos superan tus ingresos proyectados';
+        freeDescEl.className = 'text-[10px] text-rose-600 font-medium';
+      }
+
+      document.getElementById('metric-current-cash').textContent = formatCurrency(monthlyCashAvailable);
+    }
+
+    // --- Renderizado Completo ---
+    function renderAll() {
+      renderUserSelector();
+      renderQuincena('q1', 'q1-expenses-list');
+      renderQuincena('q2', 'q2-expenses-list');
+      updateMetricsAndBalances();
+    }
+
+    // --- Gestión de Usuarios ---
+    function renderUserSelector() {
+      const select = document.getElementById('user-select');
+      const avatar = document.getElementById('user-avatar');
+      const activeUser = getActiveUser();
+
+      avatar.textContent = activeUser.name.charAt(0).toUpperCase();
+      avatar.style.backgroundColor = activeUser.color || '#16a34a';
+
+      select.innerHTML = store.users.map(u => `
+        <option value="${u.id}" ${u.id === store.activeUserId ? 'selected' : ''}>
+          ${escapeHtml(u.name)}
+        </option>
+      `).join('');
+    }
+
+    function renderManageUsersList() {
+      const listContainer = document.getElementById('users-list-manage');
+      listContainer.innerHTML = store.users.map(u => `
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full flex items-center justify-center text-white text-[11px] font-bold" style="background-color: ${u.color || '#16a34a'}">
+              ${u.name.charAt(0).toUpperCase()}
+            </span>
+            <span class="text-xs font-semibold text-slate-800">${escapeHtml(u.name)}</span>
+            ${u.id === store.activeUserId ? '<span class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-bold">Activo</span>' : ''}
+          </div>
+          ${store.users.length > 1 ? `
+            <button onclick="promptDeleteUser('${u.id}', '${escapeHtml(u.name)}')" class="text-xs text-rose-500 hover:text-rose-700 p-1" title="Eliminar usuario">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            </button>
+          ` : '<span class="text-[10px] text-slate-400 font-medium">Principal</span>'}
+        </div>
+      `).join('');
+    }
+
+    // Modal Crear Usuario
+    const userModal = document.getElementById('user-modal');
+    document.getElementById('btn-add-user').addEventListener('click', () => {
+      document.getElementById('user-form').reset();
+      userModal.classList.remove('hidden');
+      document.getElementById('new-user-name').focus();
+    });
+
+    document.getElementById('btn-close-user-modal').addEventListener('click', () => userModal.classList.add('hidden'));
+    document.getElementById('btn-cancel-user-modal').addEventListener('click', () => userModal.classList.add('hidden'));
+
+    document.getElementById('user-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('new-user-name').value.trim();
+      const color = document.querySelector('input[name="new-user-color"]:checked').value;
+      if (!name) return;
+
+      const newId = 'usr-' + Date.now();
+      store.users.push({ id: newId, name, color });
+      store.activeUserId = newId;
+      saveData();
+      userModal.classList.add('hidden');
+      renderAll();
+      showToast(`¡Usuario "${name}" creado y activado!`);
+    });
+
+    // Modal Administrar Usuarios
+    const manageModal = document.getElementById('manage-users-modal');
+    document.getElementById('btn-manage-users').addEventListener('click', () => {
+      renderManageUsersList();
+      manageModal.classList.remove('hidden');
+    });
+    document.getElementById('btn-close-manage-modal').addEventListener('click', () => manageModal.classList.add('hidden'));
+    document.getElementById('btn-done-manage-modal').addEventListener('click', () => manageModal.classList.add('hidden'));
+
+    // Cambio de usuario en select
+    document.getElementById('user-select').addEventListener('change', (e) => {
+      store.activeUserId = e.target.value;
+      saveData();
+      renderAll();
+      showToast(`Cambiado a perfil: ${getActiveUser().name}`);
+    });
+
+    // --- Inputs de Ingreso Quincenal Modificables ---
+    function setupIncomeInput(inputId, key) {
+      const input = document.getElementById(inputId);
+      const handleSave = () => {
+        const val = parseFloat(input.value) || 0;
+        const monthData = getActiveUserData();
+        monthData[key] = Math.max(0, val);
+        saveData();
+        updateMetricsAndBalances();
+      };
+      input.addEventListener('change', handleSave);
+      input.addEventListener('blur', handleSave);
+    }
+    setupIncomeInput('q1-income-input', 'income_q1');
+    setupIncomeInput('q2-income-input', 'income_q2');
+
+    // --- Modal Agregar / Editar Gasto ---
+    const expenseModal = document.getElementById('expense-modal');
+    const expenseForm = document.getElementById('expense-form');
+    const btnModalDeleteExpense = document.getElementById('btn-modal-delete-expense');
+
+    function openAddModal(quincena) {
+      expenseForm.reset();
+      document.getElementById('form-expense-id').value = '';
+      document.getElementById('form-quincena').value = quincena;
+      document.getElementById('modal-title').textContent = `Nuevo Gasto (${quincena === 'q1' ? '1ra Quincena' : '2da Quincena'})`;
+      btnModalDeleteExpense.classList.add('hidden');
+      document.querySelector('input[name="form-status"][value="red"]').checked = true;
+      expenseModal.classList.remove('hidden');
+      document.getElementById('form-name').focus();
+    }
+
+    function openEditModal(id, quincena) {
+      const monthData = getActiveUserData();
+      const item = monthData[quincena].find(x => x.id === id);
+      if (!item) return;
+
+      document.getElementById('form-expense-id').value = item.id;
+      document.getElementById('form-quincena').value = quincena;
+      document.getElementById('modal-title').textContent = `Editar Gasto (${quincena === 'q1' ? '1ra Quincena' : '2da Quincena'})`;
+      document.getElementById('form-name').value = item.name;
+      document.getElementById('form-amount').value = item.amount;
+      document.getElementById('form-category').value = item.category || 'Otro';
+
+      // Mostrar botón de eliminar directo en el modal de edición
+      btnModalDeleteExpense.classList.remove('hidden');
+      btnModalDeleteExpense.onclick = () => {
+        closeExpenseModal();
+        promptDeleteExpense(item.id, item.name, quincena);
+      };
+
+      const statusRadio = document.querySelector(`input[name="form-status"][value="${item.status}"]`);
+      if (statusRadio) statusRadio.checked = true;
+
+      expenseModal.classList.remove('hidden');
+      document.getElementById('form-name').focus();
+    }
+
+    function closeExpenseModal() {
+      expenseModal.classList.add('hidden');
+    }
+
+    document.getElementById('btn-close-modal').addEventListener('click', closeExpenseModal);
+    document.getElementById('btn-cancel-modal').addEventListener('click', closeExpenseModal);
+
+    expenseForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = document.getElementById('form-expense-id').value;
+      const quincena = document.getElementById('form-quincena').value;
+      const name = document.getElementById('form-name').value.trim();
+      const amount = parseFloat(document.getElementById('form-amount').value);
+      const category = document.getElementById('form-category').value;
+      const status = document.querySelector('input[name="form-status"]:checked').value;
+
+      if (!name || isNaN(amount) || amount <= 0) return;
+
+      const monthData = getActiveUserData();
+
+      if (id) {
+        const item = monthData[quincena].find(x => x.id === id);
+        if (item) {
+          item.name = name;
+          item.amount = amount;
+          item.category = category;
+          item.status = status;
+        }
+        showToast('Gasto actualizado correctamente');
+      } else {
+        monthData[quincena].push({
+          id: 'exp-' + Date.now(),
+          name,
+          amount,
+          category,
+          status
+        });
+        showToast('¡Gasto agregado exitosamente!');
+      }
+
+      saveData();
+      closeExpenseModal();
+      renderAll();
+    });
+
+    // --- Modal de Confirmación de Eliminación ---
+    const deleteModal = document.getElementById('delete-modal');
+
+    function promptDeleteExpense(id, name, quincena) {
+      deleteAction = () => {
+        const monthData = getActiveUserData();
+        monthData[quincena] = monthData[quincena].filter(x => x.id !== id);
+        saveData();
+        renderAll();
+        showToast(`Gasto "${name}" eliminado`);
+      };
+      document.getElementById('delete-modal-title').textContent = '¿Eliminar este gasto?';
+      document.getElementById('delete-item-name').textContent = `Se quitará "${name}" del presupuesto de la quincena.`;
+      deleteModal.classList.remove('hidden');
+    }
+
+    function promptDeleteUser(userId, userName) {
+      deleteAction = () => {
+        store.users = store.users.filter(u => u.id !== userId);
+        delete store.userData[userId];
+        if (store.activeUserId === userId) {
+          store.activeUserId = store.users[0].id;
+        }
+        saveData();
+        renderManageUsersList();
+        renderAll();
+        showToast(`Usuario "${userName}" eliminado`);
+      };
+      document.getElementById('delete-modal-title').textContent = '¿Eliminar usuario?';
+      document.getElementById('delete-item-name').textContent = `Se borrarán todos los datos y gastos de "${userName}".`;
+      deleteModal.classList.remove('hidden');
+    }
+
+    document.getElementById('btn-cancel-delete').addEventListener('click', () => {
+      deleteModal.classList.add('hidden');
+      deleteAction = null;
+    });
+
+    document.getElementById('btn-confirm-delete').addEventListener('click', () => {
+      if (deleteAction) deleteAction();
+      deleteModal.classList.add('hidden');
+      deleteAction = null;
+    });
+
+    // --- Funcionalidad de WhatsApp (Reporte Quincenal o Mensual) ---
+    const whatsappModal = document.getElementById('whatsapp-modal');
+    const waPhoneInput = document.getElementById('wa-phone-input');
+    const waPreviewText = document.getElementById('wa-preview-text');
+
+    function generateWhatsAppMessage(scope) {
+      const user = getActiveUser();
+      const monthData = getActiveUserData();
+      const monthStr = `${MONTH_NAMES[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+
+      let title = '';
+      let periodLabel = '';
+      let income = 0;
+      let items = [];
+
+      if (scope === 'q1') {
+        title = '📊 *RESUMEN DE GASTOS - 1RA QUINCENA*';
+        periodLabel = `1 al 15 de ${monthStr}`;
+        income = Number(monthData.income_q1) || 0;
+        items = monthData.q1 || [];
+      } else if (scope === 'q2') {
+        title = '📊 *RESUMEN DE GASTOS - 2DA QUINCENA*';
+        periodLabel = `16 al fin de ${monthStr}`;
+        income = Number(monthData.income_q2) || 0;
+        items = monthData.q2 || [];
+      } else {
+        title = '📊 *BALANCE CONSOLIDADO MENSUAL*';
+        periodLabel = monthStr;
+        income = (Number(monthData.income_q1) || 0) + (Number(monthData.income_q2) || 0);
+        items = [...(monthData.q1 || []), ...(monthData.q2 || [])];
+      }
+
+      let totalExpenses = 0;
+      let paidTotal = 0;
+      let paidCount = 0;
+      let pendingTotal = 0;
+      let pendingCount = 0;
+
+      let detailLines = [];
+
+      items.forEach(it => {
+        const amt = Number(it.amount) || 0;
+        totalExpenses += amt;
+        let icon = '🔴';
+        let statusName = 'Sin realizar';
+        if (it.status === 'green') {
+          icon = '🟢';
+          statusName = 'Pagado';
+          paidTotal += amt;
+          paidCount++;
+        } else if (it.status === 'yellow') {
+          icon = '🟡';
+          statusName = 'Por completar';
+          pendingTotal += amt;
+          pendingCount++;
+        } else {
+          pendingTotal += amt;
+          pendingCount++;
+        }
+        detailLines.push(`${icon} ${it.name}: ${formatCurrency(amt)} (${statusName})`);
+      });
+
+      const freeMoney = income - totalExpenses;
+      const freeIcon = freeMoney >= 0 ? '🟢' : '🚨';
+      const freeLabel = freeMoney >= 0 ? '¿Cuánto me quedó libre?' : 'Déficit / Sobregasto:';
+
+      let msg = `${title}\n`;
+      msg += `👤 *Usuario:* ${user.name}\n`;
+      msg += `📅 *Periodo:* ${periodLabel}\n\n`;
+      msg += `💰 *¿Cuánto gané?* ${formatCurrency(income)}\n`;
+      msg += `💳 *¿Cuánto gasté?* ${formatCurrency(totalExpenses)}\n`;
+      msg += `${freeIcon} *${freeLabel}* ${formatCurrency(freeMoney)}\n\n`;
+      msg += `📌 *Detalle de Gastos (${items.length}):*\n`;
+      
+      if (detailLines.length > 0) {
+        msg += detailLines.join('\n') + '\n\n';
+      } else {
+        msg += `_No hay gastos registrados en este periodo_\n\n`;
+      }
+
+      msg += `✅ *Pagados:* ${paidCount} (${formatCurrency(paidTotal)})\n`;
+      msg += `⏳ *Pendientes:* ${pendingCount} (${formatCurrency(pendingTotal)})\n\n`;
+      msg += `_Generado con la App Presupuesto Quincenal_`;
+
+      return msg;
+    }
+
+    function openWhatsAppModal(scope) {
+      currentWaScope = scope;
+      const titles = {
+        q1: 'Enviar Resumen de 1ra Quincena por WhatsApp',
+        q2: 'Enviar Resumen de 2da Quincena por WhatsApp',
+        month: 'Enviar Balance Mensual por WhatsApp'
+      };
+      document.getElementById('wa-modal-title').textContent = titles[scope] || 'Enviar Resumen por WhatsApp';
+
+      // Cargar número guardado si existe
+      waPhoneInput.value = store.savedWaPhone || '';
+      const msg = generateWhatsAppMessage(scope);
+      waPreviewText.textContent = msg;
+
+      whatsappModal.classList.remove('hidden');
+      waPhoneInput.focus();
+    }
+
+    function closeWhatsAppModal() {
+      whatsappModal.classList.add('hidden');
+    }
+
+    document.getElementById('btn-close-wa-modal').addEventListener('click', closeWhatsAppModal);
+    document.getElementById('btn-cancel-wa-modal').addEventListener('click', closeWhatsAppModal);
+
+    // Enviar a WhatsApp
+    document.getElementById('btn-send-wa-action').addEventListener('click', () => {
+      const rawPhone = waPhoneInput.value.trim();
+      // Guardar el número para conveniencia
+      store.savedWaPhone = rawPhone;
+      saveData();
+
+      // Limpiar el teléfono para la URL
+      let cleanPhone = rawPhone.replace(/[^\d]/g, '');
+
+      // Si tiene 10 dígitos y comienza con 3 (típico celular en Colombia), agregar 57 si no tiene código
+      if (cleanPhone.length === 10 && cleanPhone.startsWith('3')) {
+        cleanPhone = '57' + cleanPhone;
+      }
+
+      const msg = generateWhatsAppMessage(currentWaScope);
+      const encodedMsg = encodeURIComponent(msg);
+
+      let url = '';
+      if (cleanPhone) {
+        url = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedMsg}`;
+      } else {
+        url = `https://api.whatsapp.com/send?text=${encodedMsg}`;
+      }
+
+      window.open(url, '_blank');
+      showToast('Abriendo WhatsApp...');
+      closeWhatsAppModal();
+    });
+
+    // Copiar texto al portapapeles
+    document.getElementById('btn-copy-wa-text').addEventListener('click', () => {
+      const text = generateWhatsAppMessage(currentWaScope);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast('¡Texto copiado al portapapeles!');
+        }).catch(() => {
+          fallbackCopyText(text);
+        });
+      } else {
+        fallbackCopyText(text);
+      }
+    });
+
+    function fallbackCopyText(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast('¡Texto copiado al portapapeles!');
+      } catch (err) {
+        showToast('No se pudo copiar automáticamente');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // --- Filtros por Semáforo ---
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.filter-tab').forEach(t => {
+          t.classList.remove('bg-white', 'text-slate-900', 'shadow-sm');
+          t.classList.add('text-slate-600');
+        });
+        tab.classList.add('bg-white', 'text-slate-900', 'shadow-sm');
+        tab.classList.remove('text-slate-600');
+
+        currentFilter = tab.getAttribute('data-filter');
+        renderQuincena('q1', 'q1-expenses-list');
+        renderQuincena('q2', 'q2-expenses-list');
+      });
+    });
+
+    // --- Navegación de Meses ---
+    document.getElementById('btn-prev-month').addEventListener('click', () => {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      renderAll();
+    });
+
+    document.getElementById('btn-next-month').addEventListener('click', () => {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      renderAll();
+    });
+
+    // --- Reiniciar Demo ---
+    document.getElementById('btn-reset-demo').addEventListener('click', () => {
+      store = JSON.parse(JSON.stringify(INITIAL_STORE));
+      saveData();
+      renderAll();
+      showToast('Datos de demostración reiniciados');
+    });
+
+    // Inicialización
+    window.addEventListener('DOMContentLoaded', () => {
+      loadData();
+      renderAll();
+    });
+  </script>
+</body>
+</html>
+```
